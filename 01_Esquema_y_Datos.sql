@@ -120,4 +120,3 @@ INSERT INTO detalle_ventas (id_venta, id_producto, cantidad, precio_unitario_con
 (2, 2, 3, 19.99),
 (3, 6, 1, 199.00),
 (4, 3, 1, 89.99);
-
