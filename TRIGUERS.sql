@@ -1,5 +1,7 @@
 USE tienda_online;
 
+SHOW GRANTS FOR CURRENT_USER;
+
 
 CREATE TABLE IF NOT EXISTS auditoria_precios (
   id_log INT AUTO_INCREMENT PRIMARY KEY,
@@ -331,15 +333,3 @@ BEGIN
   VALUES (NEW.id_cliente, NEW.id_referente, NOW());
 END //
 DELIMITER ;
-
-
-
-
-
-
-
-
-
-
-
-
