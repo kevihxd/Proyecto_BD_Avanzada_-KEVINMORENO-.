@@ -1,3 +1,5 @@
+use tienda_online;
+
 -- fn_CalcularTotalVenta
 
 CREATE FUNCTION fn_CalcularTotalVenta(p_id_venta INT)
@@ -259,9 +261,9 @@ BEGIN
   END IF;
 
   -- Verificar si contiene al menos un número
-  IF p_password LIKE '%0%' OR p_password LIKE '%1%' OR p_password LIKE '%2%' OR
-     p_password LIKE '%3%' OR p_password LIKE '%4%' OR p_password LIKE '%5%' OR
-     p_password LIKE '%6%' OR p_password LIKE '%7%' OR p_password LIKE '%8%' OR
+  IF p_password LIKE '%0%' OR p_contraseña LIKE '%1%' OR p_contraseñaLIKE '%2%' OR
+     p_password LIKE '%3%' OR p_contraseña LIKE '%4%' OR p_contraseña LIKE '%5%' OR
+     p_password LIKE '%6%' OR p_contraseña LIKE '%7%' or p_contraseña LIKE '%8%' OR
      p_password LIKE '%9%' THEN
     SET tiene_numero = TRUE;
   END IF;
@@ -270,6 +272,3 @@ BEGIN
 END //
 
 DELIMITER ;
-
-
-
