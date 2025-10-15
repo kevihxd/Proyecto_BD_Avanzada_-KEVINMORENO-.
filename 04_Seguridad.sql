@@ -1,7 +1,7 @@
 USE tienda_online;
 
 -- ======================================================
--- 🚀 CREACIÓN DE ROLES
+--  CREACIÓN DE ROLES
 -- ======================================================
 
 CREATE ROLE Administrador_Sistema;
@@ -25,7 +25,6 @@ GRANT SELECT ON tienda_online.ventas TO Gerente_Marketing;
 GRANT SELECT ON tienda_online.clientes TO Gerente_Marketing;
 
 -- Analista de datos: solo lectura, excepto tablas de auditoría
-REVOKE ALL PRIVILEGES ON tienda_online.* FROM Analista_Datos;
 GRANT SELECT ON tienda_online.ventas TO Analista_Datos;
 GRANT SELECT ON tienda_online.clientes TO Analista_Datos;
 GRANT SELECT ON tienda_online.productos TO Analista_Datos;
@@ -86,6 +85,7 @@ DROP USER IF EXISTS 'root'@'%';
 -- ======================================================
 
 -- Limitar el número de consultas y conexiones por hora del analista
+
 ALTER USER 'analista_user'@'localhost'
 WITH 
     MAX_QUERIES_PER_HOUR 1000,
@@ -111,11 +111,3 @@ FROM tienda_online.ventas
 WHERE usuario = CURRENT_USER();
 
 GRANT SELECT ON tienda_online.v_ventas_limitadas TO Analista_Datos;
-
-
-
-
-
-
-
-
