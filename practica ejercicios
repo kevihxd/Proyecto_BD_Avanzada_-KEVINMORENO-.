@@ -1,0 +1,126 @@
+PRACTICA PROYECTO USE tienda_online;
+
+-- ========================================
+-- ✅ PRÁCTICA 1: Consulta Avanzada - Canasta de Mercado
+-- ========================================
+
+SELECT 
+  a.id_producto AS id_producto_A,
+  b.id_producto AS id_producto_B,
+  COUNT(*) AS frecuencia
+FROM detalle_ventas a
+JOIN detalle_ventas b 
+  ON a.id_venta = b.id_venta 
+  AND a.id_producto < b.id_producto
+GROUP BY a.id_producto, b.id_producto
+ORDER BY frecuencia DESC
+LIMIT 5;
+
+
+-- ========================================
+-- ✅ PRÁCTICA 2: Función - Nivel de Lealtad del Cliente
+-- ========================================
+
+DELIMITER //
+CREATE FUNCTION fn_ObtenerNivelLealtad(p_id_cliente INT)
+RETURNS VARCHAR(20)
+DETERMINISTIC
+BEGIN
+  DECLARE total_gastado DECIMAL(10,2);
+  DECLARE nivel VARCHAR(20);
+
+  SELECT SUM(total) INTO total_gastado
+  FROM ventas
+  WHERE id_cliente = p_id_cliente;
+
+  IF total_gastado IS NULL THEN
+    SET nivel = 'Nuevo';
+  ELSEIF total_gastado >= 1000 THEN
+    SET nivel = 'Oro';
+  ELSEIF total_gastado >= 300 THEN
+    SET nivel = 'Plata';
+  ELSE
+    SET nivel = 'Bronce';
+  END IF;
+
+  RETURN nivel;
+END //
+DELIMITER ;
+
+
+-- ========================================
+-- ✅ PRÁCTICA 3: Procedimiento - Aplicar Descuento por Categoría
+-- ========================================
+
+DELIMITER //
+CREATE PROCEDURE sp_AplicarDescuentoPorCategoria(
+  IN p_id_categoria INT,
+  IN p_porcentaje_descuento DECIMAL(5,2)
+)
+BEGIN
+  IF p_porcentaje_descuento < 0 OR p_porcentaje_descuento > 0.80 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Error: El porcentaje de descuento debe estar entre 0 y 0.80';
+  END IF;
+
+  START TRANSACTION;
+
+  UPDATE productos
+  SET precio = precio * (1 - p_porcentaje_descuento)
+  WHERE id_categoria = p_id_categoria;
+
+  COMMIT;
+END //
+DELIMITER ;
+
+
+-- ========================================
+-- ✅ PRÁCTICA 4: Trigger - Prevenir Stock Negativo
+-- ========================================
+
+DELIMITER //
+CREATE TRIGGER trg_controlar_stock_antes_de_venta
+BEFORE INSERT ON detalle_ventas
+FOR EACH ROW
+BEGIN
+  DECLARE stock_actual INT;
+  DECLARE nombre_producto VARCHAR(100);
+
+  SELECT stock, nombre INTO stock_actual, nombre
+  FROM productos
+  WHERE id_producto = NEW.id_producto;
+
+  IF stock_actual < NEW.cantidad THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = CONCAT('Error: Stock insuficiente para el producto ', nombre_producto);
+  END IF;
+END //
+DELIMITER ;
+
+
+-- ========================================
+-- ✅ PRÁCTICA 5: Evento - Archivar Ventas Antiguas
+-- ========================================
+
+CREATE TABLE IF NOT EXISTS ventas_historicas LIKE ventas;
+
+DELIMITER //
+CREATE EVENT evt_archivar_ventas_antiguas
+ON SCHEDULE EVERY 1 MONTH
+STARTS TIMESTAMP(CURRENT_DATE + INTERVAL (1 - DAY(CURRENT_DATE)) DAY)
+DO
+BEGIN
+  START TRANSACTION;
+
+  INSERT INTO ventas_historicas
+  SELECT * FROM ventas
+  WHERE (estado = 'Entregado' OR estado = 'Cancelado')
+    AND fecha_venta < DATE_SUB(CURDATE(), INTERVAL 5 YEAR);
+
+  DELETE FROM ventas
+  WHERE (estado = 'Entregado' OR estado = 'Cancelado')
+    AND fecha_venta < DATE_SUB(CURDATE(), INTERVAL 5 YEAR);
+
+  COMMIT;
+END //
+DELIMITER 
